@@ -72,7 +72,7 @@ texte_titre.Text = "Simple Hub"
 texte_titre.Size = UDim2.new(0.4, 0, 0.9, 0)
 texte_titre.AnchorPoint = Vector2.new (0.5, 0.5)
 texte_titre.Position = UDim2.new(0.5, 0, 0.5, 0)
-texte_titre.TextColor3 = Color3.fromHex(FF0000")
+texte_titre.TextColor3 = Color3.fromHex("FF0000")
 texte_titre.BackgroundTransparency = 1
 texte_titre.Parent = titre
 

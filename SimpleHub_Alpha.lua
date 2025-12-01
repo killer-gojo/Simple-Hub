@@ -95,7 +95,7 @@ local SpeedDisplay = Instance.new("TextLabel")
 SpeedDisplay.Parent = cat1
 SpeedDisplay.Size = UDim2.new(0.25, 0, 0.8, 0)
 SpeedDisplay.AnchorPoint = Vector2.new(0, 0.5)
-SpeedDisplay.Position = UDim2.new(0.1, 0, 0.5, 0)
+SpeedDisplay.Position = UDim2.new(0.01, 0, 0.5, 0)
 SpeedDisplay.BackgroundTransparency = 1
 
 local function setupSpeedDisplay(character)
@@ -121,7 +121,7 @@ local text1 = Instance.new("TextBox")
 text1.Parent = cat1
 text1.AnchorPoint = Vector2.new(0.5, 0.5)
 text1.Size = UDim2.new(0.25, 0, 0.8, 0)
-text1.Position = UDim2.new(0.5, 0, 0.5, 0)
+text1.Position = UDim2.new(0.3, 0, 0.5, 0)
 text1.PlaceholderText = 32
 text1.TextYAlignment = Enum.TextYAlignment.Center
 local corn2 = Instance.new("UICorner")

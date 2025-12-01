@@ -1,12 +1,11 @@
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService") -- ✅ Ajout du service d'entrée
+local player = game.Players.LocalPlayer
 
 -- ScreenGui --
 
 local UI = Instance.new("ScreenGui")
 UI.Parent = player.PlayerGui
-UI.ResetOnSpawn = false -- ✅ Empêche l'interface de disparaître à la mort
+UI.ResetOnSpawn = false
 
 -- frame --
 
@@ -15,15 +14,28 @@ frame.Parent = UI
 frame.Size = UDim2.new(0.7, 0, 0.7, 0)
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-frame.BackgroundColor3 = Color3.fromRGB(97, 80, 168)
+frame.BackgroundColor3 = Color3.fromHex("6150A8")
+frame.BorderSizePixel = 5
+frame.BorderColor3 = Color3.fromHex("3920A2")
+frame.ClipsDescendants = true
 frame.Visible = true
 
--- Bouton de Toggle (Ouvrir/Fermer) --
+local borderGradient = Instance.new("UIGradient")
+borderGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromHex("FF0000")), -- 🔴 Rouge au centre (Clé 0)
+    ColorSequenceKeypoint.new(1, Color3.fromHex("0000FF"))  -- 🔵 Bleu aux bords (Clé 1)
+}
+borderGradient.Parent = frame
 
+-- toggle button --
+
+local UserInputService = game:GetService("UserInputService")
 local bouton = Instance.new("ImageButton")
+
+
 bouton.Parent = UI
 bouton.AnchorPoint = Vector2.new(0, 0.5)
-bouton.Size = UDim2.new(0, 40, 0, 40) -- Taille fixe 40x40 pixels
+bouton.Size = UDim2.new(0, 40, 0, 40)
 bouton.Position = UDim2.new(0.05, 0, 0.5, 0)
 
 
@@ -36,68 +48,117 @@ local function onToggleClicked()
     end
 end
 
-bouton.MouseButton1Click:Connect(onToggleClicked) -- Connexion du clic souris
+bouton.MouseButton1Click:Connect(onToggleClicked)
 
--- Connexion du raccourci clavier (Alt)
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end -- Ignore si l'utilisateur est en train de taper
+    if gameProcessedEvent then return end 
 
-    -- Utilise LeftAlt ou RightAlt pour plus de compatibilité
-    if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
+  
+    if input.KeyCode == Enum.KeyCode.LeftAlt then
         onToggleClicked()
     end
-end)
-
----
+    end)
 
 -- title bar --
 
 local titre = Instance.new("Frame")
 titre.Parent = frame
-titre.Size = UDim2.new(1, 0, 0.1, 0) -- 10% de hauteur
+titre.Size = UDim2.new(1, 0, 0.1, 0)
 titre.AnchorPoint = Vector2.new(0, 0)
 titre.BackgroundColor3 = Color3.fromHex("13DECD")
 
 local texte_titre = Instance.new("TextLabel")
 texte_titre.Text = "Simple Hub"
 texte_titre.Size = UDim2.new(0.4, 0, 0.9, 0)
-texte_titre.AnchorPoint = Vector2.new(0.5, 0.5) -- ✅ Centrage parfait
+texte_titre.AnchorPoint = Vector2.new (0.5, 0.5)
 texte_titre.Position = UDim2.new(0.5, 0, 0.5, 0)
-texte_titre.BackgroundColor3 = Color3.fromHex("16DF6E")
-texte_titre.BackgroundTransparency = 1 -- ✅ Le texte est maintenant transparent
+texte_titre.TextColor3 = Color3.fromHex("16DF6E")
+texte_titre.BackgroundTransparency = 1
 texte_titre.Parent = titre
 
----
+-- category 1 --
 
--- speed (Affichage en temps réel) --
+local cat1 = Instance.new("Frame")
+cat1.Parent = frame
+cat1.Size = UDim2.new(0.8, 0, 0.15, 0)
+cat1.AnchorPoint = Vector2.new(0, 0)
+cat1.Position = UDim2.new(0.1, 0, 0.15, 5)
+cat1.BackgroundColor3 = Color3.fromHex("F100E5")
+
+local corn1 = Instance.new("UICorner")
+corn1.Parent = cat1
+corn1.CornerRadius = UDim.new(0, 12)
+
+-- speed --
 
 local SpeedDisplay = Instance.new("TextLabel")
-SpeedDisplay.Parent = frame
-SpeedDisplay.Size = UDim2.new(0.2, 0, 0.1, 0)
-SpeedDisplay.AnchorPoint = Vector2.new(0, 0)
-SpeedDisplay.Position = UDim2.new(0, 3, 0.2, 5)
-SpeedDisplay.BackgroundTransparency = 1 -- ✅ Fond transparent
-SpeedDisplay.TextColor3 = Color3.fromHex("FFFFFF") -- Texte blanc pour le contraste
+SpeedDisplay.Parent = cat1
+SpeedDisplay.Size = UDim2.new(0.25, 0, 0.8, 0)
+SpeedDisplay.AnchorPoint = Vector2.new(0, 0.5)
+SpeedDisplay.Position = UDim2.new(0.1, 0, 0.5, 0)
+SpeedDisplay.BackgroundTransparency = 1
 
 local function setupSpeedDisplay(character)
-    -- Fonction pour configurer le Humanoid après chaque respawn
     local Humanoid = character:FindFirstChild("Humanoid")
     if not Humanoid then return end
 
     local function updateSpeed()
-        -- Mise à jour du texte avec la valeur actuelle (conversion en chaîne)
         SpeedDisplay.Text = "Vitesse: " .. tostring(Humanoid.WalkSpeed)
     end
     
-    -- Connexion de l'événement (uniquement quand la propriété WalkSpeed change)
     Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(updateSpeed)
     
-    updateSpeed() -- Affichage immédiat de la vitesse de départ
+    updateSpeed()
 end
 
--- Connexions de stabilité
-player.CharacterAdded:Connect(setupSpeedDisplay) -- Relance le setup après chaque mort
+player.CharacterAdded:Connect(setupSpeedDisplay)
 
 if player.Character then
-    setupSpeedDisplay(player.Character) -- Lance le setup au démarrage si le joueur est déjà là
+    setupSpeedDisplay(player.Character)
 end
+
+local text1 = Instance.new("TextBox")
+text1.Parent = cat1
+text1.AnchorPoint = Vector2.new(0.5, 0)
+text1.Size = UDim2.new(0.25, 0, 0.8, 0)
+text1.Position = UDim2.new(0.5, 0, 0.5, 0)
+text1.PlaceholderText = 32
+local corn2 = Instance.new("UICorner")
+corn2.Parent = text1
+corn2.CornerRadius = UDim.new(0, 6)
+
+local AB1 = Instance.new("TextButton")
+AB1.Parent = cat1
+AB1.AnchorPoint = Vector2.new(1, 0.5)
+AB1.Size = UDim2.new(0.4, 0, 0.8, 0)
+AB1.Position = UDim2.new(0.9, 0, 0.5, 0)
+AB1.BackgroundColor3 = Color3.fromHex("009900")
+AB1.Text = "Set"
+local corn3 = Instance.new("UICorner")
+corn3.Parent = AB1
+corn3.CornerRadius = UDim.new(0.2, 0)
+
+local function apply()
+local character = player.Character
+    if not character then return end 
+    local Humanoid = character:FindFirstChild("Humanoid")
+    if not Humanoid then return end
+
+    local newSpeed = tonumber(text1.Text)
+
+    if newSpeed and newSpeed > 0 then
+    Humanoid.WalkSpeed = newSpeed
+
+    AB1.Text = "Applied !"
+        AB1.BackgroundColor3 = Color3.fromHex("00FF00") 
+        task.wait(1) 
+        AB1.Text = "Set"
+        AB1.BackgroundColor3 = Color3.fromHex("009900")
+        else
+AB1.Text = "FAILED !!"
+        AB1.BackgroundColor3 = Color3.fromHex("FF0000") 
+        wait(1)
+        AB1.Text = "Set"
+        AB1.BackgroundColor3 = Color3.fromHex("009900")
+        end
+        end

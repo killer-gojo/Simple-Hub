@@ -119,7 +119,7 @@ end
 
 local text1 = Instance.new("TextBox")
 text1.Parent = cat1
-text1.AnchorPoint = Vector2.new(0.5, 0)
+text1.AnchorPoint = Vector2.new(0.5, 0.5)
 text1.Size = UDim2.new(0.25, 0, 0.8, 0)
 text1.Position = UDim2.new(0.5, 0, 0.5, 0)
 text1.PlaceholderText = 32
@@ -131,7 +131,7 @@ local AB1 = Instance.new("TextButton")
 AB1.Parent = cat1
 AB1.AnchorPoint = Vector2.new(1, 0.5)
 AB1.Size = UDim2.new(0.4, 0, 0.8, 0)
-AB1.Position = UDim2.new(0.9, 0, 0.5, 0)
+AB1.Position = UDim2.new(0.95, 0, 0.5, 0)
 AB1.BackgroundColor3 = Color3.fromHex("009900")
 AB1.Text = "Set"
 local corn3 = Instance.new("UICorner")

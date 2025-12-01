@@ -1,13 +1,9 @@
 local Players = game:GetService("Players")
 local player = game.Players.LocalPlayer
 
--- ScreenGui --
-
 local UI = Instance.new("ScreenGui")
 UI.Parent = player.PlayerGui
 UI.ResetOnSpawn = false
-
--- frame --
 
 local frame = Instance.new("Frame")
 frame.Parent = UI
@@ -22,22 +18,18 @@ frame.Visible = true
 
 local borderGradient = Instance.new("UIGradient")
 borderGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromHex("FF0000")), -- 🔴 Rouge au centre (Clé 0)
-    ColorSequenceKeypoint.new(1, Color3.fromHex("0000FF"))  -- 🔵 Bleu aux bords (Clé 1)
+    ColorSequenceKeypoint.new(0, Color3.fromHex("FF0000")), 
+    ColorSequenceKeypoint.new(1, Color3.fromHex("0000FF"))  
 }
 borderGradient.Parent = frame
 
--- toggle button --
-
 local UserInputService = game:GetService("UserInputService")
 local bouton = Instance.new("ImageButton")
-
 
 bouton.Parent = UI
 bouton.AnchorPoint = Vector2.new(0, 0.5)
 bouton.Size = UDim2.new(0, 40, 0, 40)
 bouton.Position = UDim2.new(0.05, 0, 0.5, 0)
-
 
 local function onToggleClicked()
     frame.Visible = not frame.Visible
@@ -52,14 +44,10 @@ bouton.MouseButton1Click:Connect(onToggleClicked)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if gameProcessedEvent then return end 
-
-  
     if input.KeyCode == Enum.KeyCode.LeftAlt then
         onToggleClicked()
     end
-    end)
-
--- title bar --
+end)
 
 local titre = Instance.new("Frame")
 titre.Parent = frame
@@ -72,11 +60,9 @@ texte_titre.Text = "Simple Hub"
 texte_titre.Size = UDim2.new(0.4, 0, 0.9, 0)
 texte_titre.AnchorPoint = Vector2.new (0.5, 0.5)
 texte_titre.Position = UDim2.new(0.5, 0, 0.5, 0)
-texte_titre.TextColor3 = Color3.fromHex("FF0000")
+texte_titre.TextColor3 = Color3.fromHex("16DF6E")
 texte_titre.BackgroundTransparency = 1
 texte_titre.Parent = titre
-
--- category 1 --
 
 local cat1 = Instance.new("Frame")
 cat1.Parent = frame
@@ -89,7 +75,7 @@ local corn1 = Instance.new("UICorner")
 corn1.Parent = cat1
 corn1.CornerRadius = UDim.new(0, 12)
 
--- speed --
+local speedConnection = nil 
 
 local SpeedDisplay = Instance.new("TextLabel")
 SpeedDisplay.Parent = cat1
@@ -97,18 +83,35 @@ SpeedDisplay.Size = UDim2.new(0.25, 0, 0.8, 0)
 SpeedDisplay.AnchorPoint = Vector2.new(0, 0.5)
 SpeedDisplay.Position = UDim2.new(0.01, 0, 0.5, 0)
 SpeedDisplay.BackgroundTransparency = 1
+SpeedDisplay.TextColor3 = Color3.fromHex("000000") 
+SpeedDisplay.TextYAlignment = Enum.TextYAlignment.Center
+
+local function updateSpeedText(humanoid)
+    SpeedDisplay.Text = "Vitesse: " .. tostring(humanoid.WalkSpeed)
+end
 
 local function setupSpeedDisplay(character)
-    local Humanoid = character:FindFirstChild("Humanoid")
-    if not Humanoid then return end
+    local Humanoid = character:WaitForChild("Humanoid") 
+    
+    if not Humanoid then 
+        SpeedDisplay.Text = "Vitesse: --"
+        return 
+    end
 
-    local function updateSpeed()
-        SpeedDisplay.Text = "Vitesse: " .. tostring(Humanoid.WalkSpeed)
+    if speedConnection then
+        speedConnection:Disconnect()
+        speedConnection = nil
     end
     
-    Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(updateSpeed)
+    speedConnection = Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        updateSpeedText(Humanoid)
+    end)
     
-    updateSpeed()
+    Humanoid.Died:Connect(function()
+        SpeedDisplay.Text = "Vitesse: --"
+    end)
+
+    updateSpeedText(Humanoid)
 end
 
 player.CharacterAdded:Connect(setupSpeedDisplay)
@@ -122,8 +125,9 @@ text1.Parent = cat1
 text1.AnchorPoint = Vector2.new(0.5, 0.5)
 text1.Size = UDim2.new(0.25, 0, 0.8, 0)
 text1.Position = UDim2.new(0.4, 0, 0.5, 0)
-text1.PlaceholderText = 32
+text1.PlaceholderText = "32"
 text1.TextYAlignment = Enum.TextYAlignment.Center
+text1.TextColor3 = Color3.fromHex("000000")
 local corn2 = Instance.new("UICorner")
 corn2.Parent = text1
 corn2.CornerRadius = UDim.new(0, 6)
@@ -135,6 +139,7 @@ AB1.Size = UDim2.new(0.4, 0, 0.8, 0)
 AB1.Position = UDim2.new(0.95, 0, 0.5, 0)
 AB1.BackgroundColor3 = Color3.fromHex("009900")
 AB1.Text = "Set"
+AB1.TextColor3 = Color3.fromHex("000000") 
 local corn3 = Instance.new("UICorner")
 corn3.Parent = AB1
 corn3.CornerRadius = UDim.new(0.2, 0)
@@ -148,19 +153,20 @@ local character = player.Character
     local newSpeed = tonumber(text1.Text)
 
     if newSpeed and newSpeed > 0 then
-    Humanoid.WalkSpeed = newSpeed
+        Humanoid.WalkSpeed = newSpeed
 
-    AB1.Text = "Applied !"
+        AB1.Text = "Applied !"
         AB1.BackgroundColor3 = Color3.fromHex("00FF00") 
         task.wait(1) 
         AB1.Text = "Set"
         AB1.BackgroundColor3 = Color3.fromHex("009900")
-        else
-AB1.Text = "FAILED !!"
+    else
+        AB1.Text = "FAILED !!"
         AB1.BackgroundColor3 = Color3.fromHex("FF0000") 
-        wait(1)
+        task.wait(1) 
         AB1.Text = "Set"
         AB1.BackgroundColor3 = Color3.fromHex("009900")
-        end
-        end
+    end
+end
+
 AB1.MouseButton1Click:Connect(apply)

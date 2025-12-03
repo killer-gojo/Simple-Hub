@@ -88,6 +88,7 @@ logo.Size = UDim2.new(0.1, 0, 0.9, 0)
 logo.AnchorPoint = Vector2.new(1, 0)
 logo.Position = UDim2.new(0.89, 0, 0.05, 0)
 logo.Image = "rbxassetid://345081304"
+logo.Active = false
 local logoRatio = Instance.new("UIAspectRatioConstraint")
 logoRatio.Parent = logo
 logoRatio.AspectRatio = 1.0 -- Force Largeur / Hauteur = 1 (X = Y)

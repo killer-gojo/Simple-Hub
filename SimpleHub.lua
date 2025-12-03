@@ -2,6 +2,16 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
+-- anti multi Gui --
+
+if player.PlayerGui:FindFirstChild("SimpleHub") then
+    player.PlayerGui.SimpleHub:Destroy()
+end
+local UI = Instance.new("ScreenGui")
+UI.Name = "SimpleHub" -- Important !
+UI.Parent = player.PlayerGui
+UI.ResetOnSpawn = false
+
 -- ScreenGui --
 
 local UI = Instance.new("ScreenGui")

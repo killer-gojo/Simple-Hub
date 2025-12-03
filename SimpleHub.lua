@@ -317,6 +317,8 @@ AB2.MouseButton1Click:Connect(applyJump)
 
 -- gravity module --
 
+local gravityConnection = nil
+
 local GravityDisplay = Instance.new("TextLabel")
 GravityDisplay.Parent = cat3
 GravityDisplay.Size = UDim2.new(0.25, 0, 0.8, 0)
@@ -327,16 +329,20 @@ GravityDisplay.TextColor3 = Color3.fromHex("000000")
 GravityDisplay.TextYAlignment = Enum.TextYAlignment.Center
 
 local function updateGravityText()
-    GravityDisplay.Text = "Gravité: " .. tostring(workspace.Gravity)
+    GravityDisplay.Text = "Gravité: " .. tostring(workspace.Gravity)
 end
 
 local function setupGravityDisplay()
-    workspace:GetPropertyChangedSignal("Gravity"):Connect(function()
-        updateGravityText()
-    end)
-
-    updateGravityText()
+    if gravityConnection then
+        gravityConnection:Disconnect()
+        gravityConnection = nil
+    end
+    gravityConnection = workspace:GetPropertyChangedSignal("Gravity"):Connect(function()
+        updateGravityText()
+    end)
+    updateGravityText()
 end
+
 setupGravityDisplay()
 
 local text3 = Instance.new("TextBox")
@@ -364,30 +370,23 @@ corn3_3.Parent = AB3
 corn3_3.CornerRadius = UDim.new(0.2, 0)
 
 local function applyGravity()
-    local newGravity = tonumber(text3.Text)
+    local newGravity = tonumber(text3.Text)
 
-    if newGravity and newGravity >= 0 then
-        workspace.Gravity = newGravity
+    if newGravity and newGravity >= 0 then
+        workspace.Gravity = newGravity
 
-        AB3.Text = "Applied !"
-        AB3.BackgroundColor3 = Color3.fromHex("00FF00")
-        task.wait(1)
-        AB3.Text = "Set Gravity"
-        AB3.BackgroundColor3 = Color3.fromHex("009900")
-    else
-        AB3.Text = "FAILED !!"
-        AB3.BackgroundColor3 = Color3.fromHex("FF0000")
-        task.wait(1)
-        AB3.Text = "Set Gravity"
-        AB3.BackgroundColor3 = Color3.fromHex("009900")
-    end
+        AB3.Text = "Applied !"
+        AB3.BackgroundColor3 = Color3.fromHex("00FF00")
+        task.wait(1)
+        AB3.Text = "Set Gravity"
+        AB3.BackgroundColor3 = Color3.fromHex("009900")
+    else
+        AB3.Text = "FAILED !!"
+        AB3.BackgroundColor3 = Color3.fromHex("FF0000")
+        task.wait(1)
+        AB3.Text = "Set Gravity"
+        AB3.BackgroundColor3 = Color3.fromHex("009900")
+    end
 end
 
 AB3.MouseButton1Click:Connect(applyGravity)
-
--- Initial Setup (Fix for player loaded before script) --
-
-if player.Character then
-    setupSpeedDisplay(player.Character)
-    setupJumpDisplay(player.Character)
-end

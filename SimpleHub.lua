@@ -44,7 +44,7 @@ bouton.Size = UDim2.new(0, 40, 0, 40)
 bouton.Position = UDim2.new(0.05, 0, 0.5, 0)
 local cornbutton = Instance.new("UICorner")
 cornbutton.Parent = bouton
-cornbutton.CornerRadius = UDim.new(0.2, 0)
+cornbutton.CornerRadius = UDim.new(0.2, 0) -- Correction de la frappe
 
 local function onToggleClicked()
     frame.Visible = not frame.Visible
@@ -80,6 +80,55 @@ texte_titre.Position = UDim2.new(0.5, 0, 0.5, 0)
 texte_titre.TextColor3 = Color3.fromHex("FF0000")
 texte_titre.BackgroundTransparency = 1
 texte_titre.Parent = titre
+texte_titre.Active = false -- Assure que les clics passent à 'titre' pour le glissement
+
+local logo = Instance.new("ImageLabel")
+logo.Parent = titre
+logo.Size = UDim2.new(0.1, 0, 0.9, 0)
+logo.AnchorPoint = Vector2.new(1, 0)
+logo.Position = UDim2.new(0.89, 0, 0.05, 0)
+logo.Image = "rbxassetid://345081304"
+local logoRatio = Instance.new("UIAspectRatioConstraint")
+logoRatio.Parent = logo
+logoRatio.AspectRatio = 1.0 -- Force Largeur / Hauteur = 1 (X = Y)
+logoRatio.AspectType = Enum.AspectType.ScaleWithParentSize
+
+-- DRAG LOGIC (Glissement de la fenêtre via la barre de titre)
+
+local dragging = false
+local dragStart = Vector2.new(0, 0)
+local frameStart = UDim2.new(0, 0, 0, 0)
+
+titre.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        frameStart = frame.Position
+        input.Handled = true
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        local currentAbsoluteSize = frame.Parent.AbsoluteSize
+        
+        -- Conversion de l'UDim2 en pixels, application du delta, et reconversion en Scale.
+        local framePosPixelsX = frameStart.X.Scale * currentAbsoluteSize.X + frameStart.X.Offset
+        local framePosPixelsY = frameStart.Y.Scale * currentAbsoluteSize.Y + frameStart.Y.Offset
+        
+        local newScaleX = (framePosPixelsX + delta.X) / currentAbsoluteSize.X
+        local newScaleY = (framePosPixelsY + delta.Y) / currentAbsoluteSize.Y
+        
+        frame.Position = UDim2.new(newScaleX, 0, newScaleY, 0)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
 
 -- tabsFrame --
 
@@ -111,7 +160,6 @@ cat2.Size = UDim2.new(0.7, 0, 0.15, 0)
 cat2.AnchorPoint = Vector2.new(0, 0)
 cat2.Position = UDim2.new(0.3, 0, 0.45, 0)
 cat2.BackgroundColor3 = Color3.fromHex("F100E5")
--- cat2.Visible = true par défaut
 local corn2 = Instance.new("UICorner")
 corn2.Parent = cat2
 corn2.CornerRadius = UDim.new(0, 12)
@@ -120,14 +168,16 @@ local cat3 = Instance.new("Frame")
 cat3.Parent = frame
 cat3.Size = UDim2.new(0.7, 0, 0.15, 0)
 cat3.AnchorPoint = Vector2.new(0, 0)
-cat3.Position = UDim2.new(0.3, 0, 0.65, 0)
+cat3.Position = UDim2.new(0.3, 0, 0.75, 0) -- Ajusté pour mieux utiliser l'espace
 cat3.BackgroundColor3 = Color3.fromHex("F100E5")
--- cat3.Visible = true par défaut
 local corn3 = Instance.new("UICorner")
 corn3.Parent = cat3
 corn3.CornerRadius = UDim.new(0, 12)
 
--- speed --
+---
+## ⚡ Modules de Triche
+
+-- speed module --
 
 local speedConnection = nil 
 
@@ -202,7 +252,7 @@ local function apply()
 
     local newSpeed = tonumber(text1.Text)
 
-    if newSpeed and newSpeed >= 0 then -- Correction: Utilisation de >= 0
+    if newSpeed and newSpeed >= 0 then
         Humanoid.WalkSpeed = newSpeed
 
         AB1.Text = "Applied !"
@@ -221,7 +271,7 @@ end
 
 AB1.MouseButton1Click:Connect(apply)
 
--- jump power --
+-- jump power module --
 
 local jumpConnection = nil 
 
@@ -329,20 +379,19 @@ GravityDisplay.TextColor3 = Color3.fromHex("000000")
 GravityDisplay.TextYAlignment = Enum.TextYAlignment.Center
 
 local function updateGravityText()
-    GravityDisplay.Text = "Gravité: " .. tostring(workspace.Gravity)
+    GravityDisplay.Text = "Gravité: " .. tostring(workspace.Gravity)
 end
 
 local function setupGravityDisplay()
-    if gravityConnection then
-        gravityConnection:Disconnect()
-        gravityConnection = nil
-    end
-    gravityConnection = workspace:GetPropertyChangedSignal("Gravity"):Connect(function()
-        updateGravityText()
-    end)
-    updateGravityText()
+    if gravityConnection then
+        gravityConnection:Disconnect()
+        gravityConnection = nil
+    end
+    gravityConnection = workspace:GetPropertyChangedSignal("Gravity"):Connect(function()
+        updateGravityText()
+    end)
+    updateGravityText()
 end
-
 setupGravityDisplay()
 
 local text3 = Instance.new("TextBox")
@@ -370,23 +419,30 @@ corn3_3.Parent = AB3
 corn3_3.CornerRadius = UDim.new(0.2, 0)
 
 local function applyGravity()
-    local newGravity = tonumber(text3.Text)
+    local newGravity = tonumber(text3.Text)
 
-    if newGravity and newGravity >= 0 then
-        workspace.Gravity = newGravity
+    if newGravity and newGravity >= 0 then
+        workspace.Gravity = newGravity
 
-        AB3.Text = "Applied !"
-        AB3.BackgroundColor3 = Color3.fromHex("00FF00")
-        task.wait(1)
-        AB3.Text = "Set Gravity"
-        AB3.BackgroundColor3 = Color3.fromHex("009900")
-    else
-        AB3.Text = "FAILED !!"
-        AB3.BackgroundColor3 = Color3.fromHex("FF0000")
-        task.wait(1)
-        AB3.Text = "Set Gravity"
-        AB3.BackgroundColor3 = Color3.fromHex("009900")
-    end
+        AB3.Text = "Applied !"
+        AB3.BackgroundColor3 = Color3.fromHex("00FF00")
+        task.wait(1)
+        AB3.Text = "Set Gravity"
+        AB3.BackgroundColor3 = Color3.fromHex("009900")
+    else
+        AB3.Text = "FAILED !!"
+        AB3.BackgroundColor3 = Color3.fromHex("FF0000")
+        task.wait(1)
+        AB3.Text = "Set Gravity"
+        AB3.BackgroundColor3 = Color3.fromHex("009900")
+    end
 end
 
 AB3.MouseButton1Click:Connect(applyGravity)
+
+-- Initial Setup (Fix for player loaded before script) --
+
+if player.Character then
+    setupSpeedDisplay(player.Character)
+    setupJumpDisplay(player.Character)
+end

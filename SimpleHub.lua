@@ -39,9 +39,9 @@ bouton.Position = UDim2.new(0.05, 0, 0.5, 0)
 local function onToggleClicked()
     frame.Visible = not frame.Visible
     if frame.Visible then
-        bouton.Image = "7468883533" 
+        bouton.Image = "rbxassetid://7468883533" 
     else
-        bouton.Image = "257125765" 
+        bouton.Image = "rbxassetid://257125765" 
     end
 end
 

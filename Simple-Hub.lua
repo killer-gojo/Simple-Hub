@@ -25,7 +25,7 @@ frame.ClipsDescendants = true
 frame.Visible = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
--- TITLE BAR (La barre de titre demandée)
+-- TITLE BAR
 local titreBarre = Instance.new("Frame")
 titreBarre.Name = "TitleBar"
 titreBarre.Parent = frame
@@ -47,7 +47,7 @@ local bouton = Instance.new("ImageButton")
 bouton.Parent = UI
 bouton.Size = UDim2.new(0, 45, 0, 45)
 bouton.Position = UDim2.new(0.02, 0, 0.2, 0)
-bouton.Image = "rbxassetid://7468883533"
+bouton.Image = "rbxassetid://7468883533" 
 Instance.new("UICorner", bouton).CornerRadius = UDim.new(0.3, 0)
 
 bouton.MouseButton1Click:Connect(function()
@@ -55,13 +55,8 @@ bouton.MouseButton1Click:Connect(function()
     bouton.Image = frame.Visible and "rbxassetid://7468883533" or "rbxassetid://257125765"
 end)
 
--- DRAG LOGIC (Sur la barre de titre ou la frame)
-local dragging, dragInput, dragStart, startPos
-local function updateDrag(input)
-    local delta = input.Position - dragStart
-    TweenService:Create(frame, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
-end
-
+-- DRAG LOGIC
+local dragging, dragStart, startPos
 titreBarre.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -69,28 +64,29 @@ titreBarre.InputBegan:Connect(function(input)
         startPos = frame.Position
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        updateDrag(input)
+        local delta = input.Position - dragStart
+        TweenService:Create(frame, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
     end
 end)
-
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- TABS & PAGES
+-- TABS SYSTEM (DÉCALÉ À DROITE)
 local tabsFrame = Instance.new("Frame", frame)
 tabsFrame.Size = UDim2.new(0, 110, 0.8, 0)
-tabsFrame.Position = UDim2.new(0.02, 0, 0.15, 0)
+tabsFrame.Position = UDim2.new(0.04, 0, 0.15, 0) -- Décalage à 0.04 au lieu de 0.02
 tabsFrame.BackgroundColor3 = Color3.fromHex("1C2833")
 Instance.new("UICorner", tabsFrame)
-Instance.new("UIListLayout", tabsFrame).Padding = UDim.new(0, 5)
+local tabLayout = Instance.new("UIListLayout", tabsFrame)
+tabLayout.Padding = UDim.new(0, 5)
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 local pagesFolder = Instance.new("Frame", frame)
-pagesFolder.Size = UDim2.new(0.72, 0, 0.8, 0)
-pagesFolder.Position = UDim2.new(0.26, 0, 0.15, 0)
+pagesFolder.Size = UDim2.new(0.7, 0, 0.8, 0)
+pagesFolder.Position = UDim2.new(0.28, 0, 0.15, 0)
 pagesFolder.BackgroundTransparency = 1
 
 local allPages = {}
@@ -112,21 +108,38 @@ local function createPage(name)
         for _, pg in pairs(allPages) do pg.Visible = false end
         p.Visible = true
     end)
+    return p
 end
 
-createPage("Main"); createPage("Tweak"); createPage("Lock On"); createPage("Visual"); createPage("Credits")
-allPages["Main"].Visible = true
+local mainPage = createPage("Main")
+local tweakPage = createPage("Tweak")
+local lockPage = createPage("Lock On")
+local visualPage = createPage("Visual")
+local creditsPage = createPage("Credits")
 
--- FONCTION MODULE
+-- FIX POUR LA PAGE CREDITS (PAS DE SLIDE)
+creditsPage.ScrollingEnabled = false
+creditsPage.ScrollBarThickness = 0
+local creditText = Instance.new("TextLabel", creditsPage)
+creditText.Size = UDim2.new(1, 0, 1, 0)
+creditText.BackgroundTransparency = 1
+creditText.Text = "Made by killer_gojo"
+creditText.TextColor3 = Color3.new(1, 1, 1)
+creditText.TextSize = 22
+creditText.Font = Enum.Font.SourceSansBold
+
+mainPage.Visible = true
+
+-- MODULE FACTORY
 local function addModule(page, title, defaultText, callback)
     local mod = Instance.new("Frame", page)
-    mod.Size = UDim2.new(0.95, 0, 0, 70)
+    mod.Size = UDim2.new(0.95, 0, 0, 75)
     mod.BackgroundColor3 = Color3.fromHex("F100E5")
     Instance.new("UICorner", mod)
 
     local tl = Instance.new("TextLabel", mod)
     tl.Size = UDim2.new(1, 0, 0.4, 0); tl.Text = "  " .. title
-    tl.BackgroundTransparency = 1; tl.TextColor3 = Color3.new(0,0,0); tl.Font = Enum.Font.SourceSansBold
+    tl.BackgroundTransparency = 1; tl.TextColor3 = Color3.new(0,0,0); tl.Font = Enum.Font.SourceSansBold; tl.TextXAlignment = Enum.TextXAlignment.Left
 
     local statusLabel = Instance.new("TextLabel", mod)
     statusLabel.Size = UDim2.new(0.4, 0, 0.5, 0); statusLabel.Position = UDim2.new(0, 0, 0.4, 0)
@@ -144,18 +157,18 @@ local function addModule(page, title, defaultText, callback)
     return statusLabel
 end
 
-local wsLabel = addModule(allPages["Main"], "Vitesse", "16", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.WalkSpeed = v or 16 end end)
-local jpLabel = addModule(allPages["Main"], "Saut", "50", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.JumpPower = v or 50 end end)
-local gLabel = addModule(allPages["Main"], "Gravité", "196.2", function(v) workspace.Gravity = v or 196.2 end)
+local wsL = addModule(mainPage, "Vitesse", "16", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.WalkSpeed = v or 16 end end)
+local jpL = addModule(mainPage, "Saut", "50", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.JumpPower = v or 50 end end)
+local gL = addModule(mainPage, "Gravité", "196.2", function(v) workspace.Gravity = v or 196.2 end)
 
 task.spawn(function()
     while task.wait(0.5) do
         pcall(function()
             if player.Character and player.Character:FindFirstChild("Humanoid") then
-                wsLabel.Text = "Actuel: " .. math.floor(player.Character.Humanoid.WalkSpeed)
-                jpLabel.Text = "Actuel: " .. math.floor(player.Character.Humanoid.JumpPower)
+                wsL.Text = "Actuel: " .. math.floor(player.Character.Humanoid.WalkSpeed)
+                jpL.Text = "Actuel: " .. math.floor(player.Character.Humanoid.JumpPower)
             end
-            gLabel.Text = "Actuel: " .. math.floor(workspace.Gravity)
+            gL.Text = "Actuel: " .. math.floor(workspace.Gravity)
         end)
     end
 end)

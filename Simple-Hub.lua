@@ -42,7 +42,7 @@ texte_titre.TextColor3 = Color3.fromHex("FF0000")
 texte_titre.Font = Enum.Font.SourceSansBold
 texte_titre.TextSize = 20
 
--- BOUTON TOGGLE
+-- BOUTON TOGGLE GUI
 local bouton = Instance.new("ImageButton")
 bouton.Parent = UI
 bouton.Size = UDim2.new(0, 45, 0, 45)
@@ -74,10 +74,10 @@ UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- TABS SYSTEM (DÉCALÉ À DROITE)
+-- TABS SYSTEM (DÉCALÉ)
 local tabsFrame = Instance.new("Frame", frame)
 tabsFrame.Size = UDim2.new(0, 110, 0.8, 0)
-tabsFrame.Position = UDim2.new(0.04, 0, 0.15, 0) -- Décalage à 0.04 au lieu de 0.02
+tabsFrame.Position = UDim2.new(0.04, 0, 0.15, 0) 
 tabsFrame.BackgroundColor3 = Color3.fromHex("1C2833")
 Instance.new("UICorner", tabsFrame)
 local tabLayout = Instance.new("UIListLayout", tabsFrame)
@@ -117,7 +117,7 @@ local lockPage = createPage("Lock On")
 local visualPage = createPage("Visual")
 local creditsPage = createPage("Credits")
 
--- FIX POUR LA PAGE CREDITS (PAS DE SLIDE)
+-- PAGE CREDITS FIXE
 creditsPage.ScrollingEnabled = false
 creditsPage.ScrollBarThickness = 0
 local creditText = Instance.new("TextLabel", creditsPage)
@@ -130,7 +130,7 @@ creditText.Font = Enum.Font.SourceSansBold
 
 mainPage.Visible = true
 
--- MODULE FACTORY
+-- FACTORY : MODULE (INPUT)
 local function addModule(page, title, defaultText, callback)
     local mod = Instance.new("Frame", page)
     mod.Size = UDim2.new(0.95, 0, 0, 75)
@@ -143,7 +143,7 @@ local function addModule(page, title, defaultText, callback)
 
     local statusLabel = Instance.new("TextLabel", mod)
     statusLabel.Size = UDim2.new(0.4, 0, 0.5, 0); statusLabel.Position = UDim2.new(0, 0, 0.4, 0)
-    statusLabel.Text = "Actuel: --"; statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "Current: --"; statusLabel.BackgroundTransparency = 1
 
     local tb = Instance.new("TextBox", mod)
     tb.Size = UDim2.new(0.2, 0, 0.4, 0); tb.Position = UDim2.new(0.45, 0, 0.45, 0)
@@ -157,18 +157,56 @@ local function addModule(page, title, defaultText, callback)
     return statusLabel
 end
 
+-- FACTORY : TOGGLE (ON/OFF)
+local function addToggle(page, title, callback)
+    local active = false
+    local mod = Instance.new("Frame", page)
+    mod.Size = UDim2.new(0.95, 0, 0, 50)
+    mod.BackgroundColor3 = Color3.fromHex("F100E5")
+    Instance.new("UICorner", mod)
+
+    local tl = Instance.new("TextLabel", mod)
+    tl.Size = UDim2.new(0.6, 0, 1, 0); tl.Text = "  " .. title
+    tl.BackgroundTransparency = 1; tl.TextColor3 = Color3.new(0,0,0); tl.Font = Enum.Font.SourceSansBold; tl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local btn = Instance.new("TextButton", mod)
+    btn.Size = UDim2.new(0.3, 0, 0.7, 0); btn.Position = UDim2.new(0.65, 0, 0.15, 0)
+    btn.Text = "OFF"; btn.BackgroundColor3 = Color3.fromHex("FF0000"); Instance.new("UICorner", btn)
+    
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.Text = active and "ON" or "OFF"
+        btn.BackgroundColor3 = active and Color3.fromHex("009900") or Color3.fromHex("FF0000")
+        callback(active)
+    end)
+end
+
+-- LOGIQUE INFINITE JUMP
+local infJumpEnabled = false
+UserInputService.JumpRequest:Connect(function()
+    if infJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+        player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+-- REMPLISSAGE DES ONGLETS
 local wsL = addModule(mainPage, "Vitesse", "16", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.WalkSpeed = v or 16 end end)
 local jpL = addModule(mainPage, "Saut", "50", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.JumpPower = v or 50 end end)
 local gL = addModule(mainPage, "Gravité", "196.2", function(v) workspace.Gravity = v or 196.2 end)
 
+addToggle(tweakPage, "Infinite Jump", function(state)
+    infJumpEnabled = state
+end)
+
+-- REFRESH LOOP
 task.spawn(function()
     while task.wait(0.5) do
         pcall(function()
             if player.Character and player.Character:FindFirstChild("Humanoid") then
-                wsL.Text = "Actuel: " .. math.floor(player.Character.Humanoid.WalkSpeed)
-                jpL.Text = "Actuel: " .. math.floor(player.Character.Humanoid.JumpPower)
+                wsL.Text = "Current: " .. math.floor(player.Character.Humanoid.WalkSpeed)
+                jpL.Text = "Current: " .. math.floor(player.Character.Humanoid.JumpPower)
             end
-            gL.Text = "Actuel: " .. math.floor(workspace.Gravity)
+            gL.Text = "Current: " .. math.floor(workspace.Gravity)
         end)
     end
 end)

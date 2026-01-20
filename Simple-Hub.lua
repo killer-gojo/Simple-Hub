@@ -4,17 +4,32 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local workspace = game:GetService("Workspace")
 
--- ANTI MULTI GUI
+-- ==========================================
+-- NETTOYAGE DES ANCIENNES SESSIONS (ANTI-BUG)
+-- ==========================================
+if _G.SimpleHubConnection then
+    _G.SimpleHubConnection:Disconnect()
+    _G.SimpleHubConnection = nil
+end
+
+_G.SimpleHubRunning = false -- Arrête l'ancienne boucle Refresh
+task.wait(0.1) -- Laisse le temps au script précédent de s'éteindre
+
 if player.PlayerGui:FindFirstChild("SimpleHub") then
     player.PlayerGui.SimpleHub:Destroy()
 end
 
+-- Démarrage de la nouvelle session
+_G.SimpleHubRunning = true
+
+-- ==========================================
+-- CRÉATION DE L'INTERFACE
+-- ==========================================
 local UI = Instance.new("ScreenGui")
 UI.Name = "SimpleHub"
 UI.Parent = player.PlayerGui
 UI.ResetOnSpawn = false
 
--- MAIN FRAME
 local frame = Instance.new("Frame")
 frame.Parent = UI
 frame.Size = UDim2.new(0, 480, 0, 320)
@@ -22,19 +37,16 @@ frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.Position = UDim2.new(0.5, 0, 0.5, 0)
 frame.BackgroundColor3 = Color3.fromHex("6150A8")
 frame.ClipsDescendants = true
-frame.Visible = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
--- TITLE BAR
-local titreBarre = Instance.new("Frame")
+-- BARRE DE TITRE
+local titreBarre = Instance.new("Frame", frame)
 titreBarre.Name = "TitleBar"
-titreBarre.Parent = frame
 titreBarre.Size = UDim2.new(1, 0, 0, 35)
 titreBarre.BackgroundColor3 = Color3.fromHex("13DECD")
 Instance.new("UICorner", titreBarre).CornerRadius = UDim.new(0, 10)
 
-local texte_titre = Instance.new("TextLabel")
-texte_titre.Parent = titreBarre
+local texte_titre = Instance.new("TextLabel", titreBarre)
 texte_titre.Text = "Simple Hub"
 texte_titre.Size = UDim2.new(1, 0, 1, 0)
 texte_titre.BackgroundTransparency = 1
@@ -42,47 +54,41 @@ texte_titre.TextColor3 = Color3.fromHex("FF0000")
 texte_titre.Font = Enum.Font.SourceSansBold
 texte_titre.TextSize = 20
 
--- BOUTON TOGGLE GUI
-local bouton = Instance.new("ImageButton")
-bouton.Parent = UI
+-- BOUTON TOGGLE (IMAGE)
+local bouton = Instance.new("ImageButton", UI)
 bouton.Size = UDim2.new(0, 45, 0, 45)
 bouton.Position = UDim2.new(0.02, 0, 0.2, 0)
 bouton.Image = "rbxassetid://7468883533" 
 Instance.new("UICorner", bouton).CornerRadius = UDim.new(0.3, 0)
-
 bouton.MouseButton1Click:Connect(function()
     frame.Visible = not frame.Visible
     bouton.Image = frame.Visible and "rbxassetid://7468883533" or "rbxassetid://257125765"
 end)
 
--- DRAG LOGIC
+-- LOGIQUE DE DRAG
 local dragging, dragStart, startPos
 titreBarre.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
+        dragging = true; dragStart = input.Position; startPos = frame.Position
     end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
-        TweenService:Create(frame, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- TABS SYSTEM (DÉCALÉ)
+-- SYSTÈME D'ONGLETS
 local tabsFrame = Instance.new("Frame", frame)
 tabsFrame.Size = UDim2.new(0, 110, 0.8, 0)
 tabsFrame.Position = UDim2.new(0.04, 0, 0.15, 0) 
 tabsFrame.BackgroundColor3 = Color3.fromHex("1C2833")
 Instance.new("UICorner", tabsFrame)
-local tabLayout = Instance.new("UIListLayout", tabsFrame)
-tabLayout.Padding = UDim.new(0, 5)
-tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Instance.new("UIListLayout", tabsFrame).Padding = UDim.new(0, 5)
 
 local pagesFolder = Instance.new("Frame", frame)
 pagesFolder.Size = UDim2.new(0.7, 0, 0.8, 0)
@@ -92,16 +98,13 @@ pagesFolder.BackgroundTransparency = 1
 local allPages = {}
 local function createPage(name)
     local p = Instance.new("ScrollingFrame", pagesFolder)
-    p.Size = UDim2.new(1, 0, 1, 0)
-    p.BackgroundTransparency = 1
-    p.Visible = false
-    p.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    p.ScrollBarThickness = 2
+    p.Size = UDim2.new(1, 0, 1, 0); p.BackgroundTransparency = 1; p.Visible = false
+    p.AutomaticCanvasSize = Enum.AutomaticSize.Y; p.ScrollBarThickness = 2
     Instance.new("UIListLayout", p).Padding = UDim.new(0, 10)
     allPages[name] = p
     
     local b = Instance.new("TextButton", tabsFrame)
-    b.Size = UDim2.new(0.9, 0, 0, 35)
+    b.Size = UDim2.new(0.95, 0, 0, 35)
     b.Text = name; b.BackgroundColor3 = Color3.fromHex("3920A2"); b.TextColor3 = Color3.new(1,1,1)
     Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(function()
@@ -119,22 +122,19 @@ local creditsPage = createPage("Credits")
 
 -- PAGE CREDITS FIXE
 creditsPage.ScrollingEnabled = false
-creditsPage.ScrollBarThickness = 0
 local creditText = Instance.new("TextLabel", creditsPage)
 creditText.Size = UDim2.new(1, 0, 1, 0)
-creditText.BackgroundTransparency = 1
-creditText.Text = "Made by killer_gojo"
-creditText.TextColor3 = Color3.new(1, 1, 1)
-creditText.TextSize = 22
-creditText.Font = Enum.Font.SourceSansBold
+creditText.BackgroundTransparency = 1; creditText.TextSize = 22; creditText.TextColor3 = Color3.new(1, 1, 1)
+creditText.Font = Enum.Font.SourceSansBold; creditText.Text = "Made by killer_gojo"
 
 mainPage.Visible = true
 
--- FACTORY : MODULE (INPUT)
+-- ==========================================
+-- FACTORIES (MODULES & TOGGLES)
+-- ==========================================
 local function addModule(page, title, defaultText, callback)
     local mod = Instance.new("Frame", page)
-    mod.Size = UDim2.new(0.95, 0, 0, 75)
-    mod.BackgroundColor3 = Color3.fromHex("F100E5")
+    mod.Size = UDim2.new(0.95, 0, 0, 75); mod.BackgroundColor3 = Color3.fromHex("F100E5")
     Instance.new("UICorner", mod)
 
     local tl = Instance.new("TextLabel", mod)
@@ -152,22 +152,19 @@ local function addModule(page, title, defaultText, callback)
     local btn = Instance.new("TextButton", mod)
     btn.Size = UDim2.new(0.25, 0, 0.4, 0); btn.Position = UDim2.new(0.7, 0, 0.45, 0)
     btn.Text = "Set"; btn.BackgroundColor3 = Color3.fromHex("009900"); Instance.new("UICorner", btn)
-    
     btn.MouseButton1Click:Connect(function() callback(tonumber(tb.Text)) end)
     return statusLabel
 end
 
--- FACTORY : TOGGLE (ON/OFF)
 local function addToggle(page, title, callback)
     local active = false
     local mod = Instance.new("Frame", page)
-    mod.Size = UDim2.new(0.95, 0, 0, 50)
-    mod.BackgroundColor3 = Color3.fromHex("F100E5")
+    mod.Size = UDim2.new(0.95, 0, 0, 50); mod.BackgroundColor3 = Color3.fromHex("F100E5")
     Instance.new("UICorner", mod)
 
     local tl = Instance.new("TextLabel", mod)
     tl.Size = UDim2.new(0.6, 0, 1, 0); tl.Text = "  " .. title
-    tl.BackgroundTransparency = 1; tl.TextColor3 = Color3.new(0,0,0); tl.Font = Enum.Font.SourceSansBold; tl.TextXAlignment = Enum.TextXAlignment.Left
+    tl.BackgroundTransparency = 1; tl.Font = Enum.Font.SourceSansBold; tl.TextXAlignment = Enum.TextXAlignment.Left
 
     local btn = Instance.new("TextButton", mod)
     btn.Size = UDim2.new(0.3, 0, 0.7, 0); btn.Position = UDim2.new(0.65, 0, 0.15, 0)
@@ -181,26 +178,27 @@ local function addToggle(page, title, callback)
     end)
 end
 
--- LOGIQUE INFINITE JUMP
+-- ==========================================
+-- FONCTIONNALITÉS
+-- ==========================================
+local wsL = addModule(mainPage, "Vitesse", "16", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.WalkSpeed = v or 16 end end)
+local jpL = addModule(mainPage, "Saut", "50", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.JumpPower = v or 50 end end)
+local gL = addModule(mainPage, "Gravité", "196.2", function(v) workspace.Gravity = v or 196.2 end)
+
 local infJumpEnabled = false
-UserInputService.JumpRequest:Connect(function()
+_G.SimpleHubConnection = UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
         player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
     end
 end)
 
--- REMPLISSAGE DES ONGLETS
-local wsL = addModule(mainPage, "Vitesse", "16", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.WalkSpeed = v or 16 end end)
-local jpL = addModule(mainPage, "Saut", "50", function(v) if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.JumpPower = v or 50 end end)
-local gL = addModule(mainPage, "Gravité", "196.2", function(v) workspace.Gravity = v or 196.2 end)
-
 addToggle(tweakPage, "Infinite Jump", function(state)
     infJumpEnabled = state
 end)
 
--- REFRESH LOOP
+-- BOUCLE DE RAFRAÎCHISSEMENT
 task.spawn(function()
-    while task.wait(0.5) do
+    while _G.SimpleHubRunning and task.wait(0.5) do
         pcall(function()
             if player.Character and player.Character:FindFirstChild("Humanoid") then
                 wsL.Text = "Current: " .. math.floor(player.Character.Humanoid.WalkSpeed)
